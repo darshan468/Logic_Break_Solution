@@ -1,0 +1,57 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  body {
+    @apply text-lb-white font-sans antialiased selection:bg-lb-gold selection:text-lb-black;
+    background-image: url('./assets/Background.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #060608;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Accessible focus states */
+  *:focus-visible {
+    outline: 2px solid #d4af37;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-lb-charcoal/60 backdrop-blur-md border border-white/5;
+  }
+
+  /* Custom sleek dark scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: #0f0f13;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #2a2a35;
+    border-radius: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #d4af37;
+  }
+}
+
+/* Reduced Motion Override for Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
