@@ -1,14 +1,52 @@
 import React, { useState } from 'react';
-import { Phone } from 'lucide-react';
+import { Phone, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import LegalModal from './LegalModal';
+import { useCounter } from '../hooks/useCounter';
+import { SITE_CONFIG } from '../config/site';
 
 const Footer = () => {
   const [legalModal, setLegalModal] = useState<'privacy' | 'terms' | null>(null);
+  const { count } = useCounter();
 
   return (
     <>
       <footer className="bg-lb-black/80 backdrop-blur-md border-t border-white/10 text-gray-300 pt-16 pb-12">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          
+          {/* Live Client Counter Banner */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 md:p-6 mb-12 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <div className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              </div>
+              <span className="text-gray-300 text-sm md:text-base font-medium">
+                Empowering Businesses & Startups Worldwide
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3 bg-lb-black/60 px-5 py-2.5 rounded-xl border border-lb-gold/30 shadow-inner">
+              <Users className="w-5 h-5 text-lb-gold shrink-0" />
+              <div className="flex items-baseline gap-1.5">
+                <AnimatePresence mode="wait">
+                  <motion.span
+                    key={count}
+                    initial={{ opacity: 0, y: -8, scale: 1.25 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.35, ease: "easeOut" }}
+                    className="text-lb-gold font-extrabold text-xl md:text-2xl tracking-tight"
+                  >
+                    {count}+
+                  </motion.span>
+                </AnimatePresence>
+                <span className="text-white text-sm md:text-base font-semibold">
+                  Clients Served
+                </span>
+              </div>
+            </div>
+          </div>
+
           {/* Top Section - 4 Columns */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-white/10">
             {/* Column 1 */}
@@ -42,12 +80,12 @@ const Footer = () => {
                 <li><a href="#process" className="hover:text-lb-gold transition-colors">FAQ</a></li>
                 <li>
                   <a
-                    href="https://wa.me/919994049254"
+                    href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-lb-gold transition-colors font-medium text-white flex items-center gap-1.5"
                   >
-                    <Phone size={14} className="text-lb-gold" /> +91 99940 49254
+                    <Phone size={14} className="text-lb-gold" /> {SITE_CONFIG.whatsappDisplayPhone}
                   </a>
                 </li>
                 <li><a href="#contact" className="hover:text-lb-gold transition-colors">Contact Support</a></li>
@@ -64,7 +102,7 @@ const Footer = () => {
                 <li><a href="#projects" className="hover:text-lb-gold transition-colors">Client Testimonials</a></li>
                 <li><a href="#process" className="hover:text-lb-gold transition-colors">Our Working Process</a></li>
                 <li><a href="#contact" className="hover:text-lb-gold transition-colors">Career Opportunities</a></li>
-                <li><a href="mailto:hello@logicbreaksolution.com" className="hover:text-lb-gold transition-colors">hello@logicbreaksolution.com</a></li>
+                <li><a href={`mailto:${SITE_CONFIG.contactEmail}`} className="hover:text-lb-gold transition-colors">{SITE_CONFIG.contactEmail}</a></li>
               </ul>
             </div>
           </div>
@@ -86,7 +124,7 @@ const Footer = () => {
 
             {/* WhatsApp */}
             <a
-              href="https://wa.me/919994049254"
+              href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="WhatsApp"

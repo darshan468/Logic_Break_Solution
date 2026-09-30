@@ -9,25 +9,28 @@ import About from './components/About';
 import Process from './components/Process';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
+import { CounterProvider } from './context/CounterProvider';
 
 function App() {
   return (
-    <div 
-      className="min-h-screen overflow-x-hidden bg-cover bg-center bg-fixed bg-no-repeat relative"
-      style={{ backgroundImage: `url(${bgImage})` }}
-    >
-      <Preloader />
-      <Navbar />
-      <main>
-        <Hero />
-        <Services />
-        <Projects />
-        <About />
-        <Process />
-        <Contact />
-      </main>
-      <Footer />
-    </div>
+    <CounterProvider>
+      <div 
+        className="min-h-screen overflow-x-hidden bg-cover bg-center bg-fixed bg-no-repeat relative"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
+        <Preloader />
+        <Navbar />
+        <main>
+          <Hero />
+          <Services />
+          <Projects />
+          <About />
+          <Process />
+          <Contact />
+        </main>
+        <Footer />
+      </div>
+    </CounterProvider>
   );
 }
 

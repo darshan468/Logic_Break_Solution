@@ -19,18 +19,21 @@ A modern, high-performance web platform built for **Logic Break Solution** — a
   - **Automation**: End-to-end workflow automation, web scraping, scheduled jobs, system integrations.
   - **Chatbots & AI Assistants**: 24/7 conversational support, RAG knowledge retrieval, WhatsApp/Slack integration.
   - **Custom Software**: Bespoke software architecture, cloud-native solutions, cross-platform apps.
-  - *Features interactive expandable details for each service domain.*
+
+- **Direct WhatsApp Project Enquiry**:
+  - Validates client details on the frontend.
+  - Formats inquiry details (Name, Phone, Email, Service, Budget, Message) and opens WhatsApp directly.
+  - Zero database storage for form entries ensuring privacy and zero data overhead.
+
+- **Live Client Counter**:
+  - Footer displays live counter badge starting at `15+ Clients Served`.
+  - Automatically increments by +1 upon each successful inquiry submission.
+  - Powered by a lightweight server endpoint with offline fallback support.
 
 - **Sleek UI/UX & Glassmorphism Design**:
   - Tailored color palette (Charcoal, Obsidian Black, Gold `#d4af37`).
   - Dynamic background canvas particles and glowing blur effects.
   - Smooth scroll transitions, hover elevation effects, and responsive navigation.
-
-- **Integrated Contact & Booking Form**:
-  - Full-featured contact form linked to Express backend for project inquiries and client communication.
-
-- **Fast & Lightweight Architecture**:
-  - Lightning-fast development and build pipeline powered by Vite 8 and TypeScript.
 
 ---
 
@@ -44,10 +47,9 @@ A modern, high-performance web platform built for **Logic Break Solution** — a
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 
-### Backend
+### Backend Counter Service
 - **Runtime**: [Node.js](https://nodejs.org/)
-- **Server Framework**: [Express.js](https://expressjs.com/)
-- **Middleware**: `cors`, `express.json`
+- **Server Framework**: [Express.js](https://expressjs.com/) (`/api/counter` endpoints)
 
 ---
 
@@ -57,14 +59,19 @@ A modern, high-performance web platform built for **Logic Break Solution** — a
 Logic Break Solution/
 ├── public/                 # Static assets (logo, icons, favicon)
 ├── server/                 # Express backend server
-│   └── index.js            # API endpoints & contact form submission handler
+│   ├── index.js            # Live counter API service
+│   └── counter.json        # Counter state storage
 ├── src/
 │   ├── assets/             # Images & visual assets
+│   ├── config/             # Site configuration (WhatsApp number & counter baseline)
+│   │   └── site.ts
+│   ├── context/            # React context (CounterContext)
+│   │   └── CounterContext.tsx
 │   ├── components/         # Modular React components
 │   │   ├── About.tsx       # Company story, values & team overview
 │   │   ├── BackgroundEffects.tsx # Canvas background particle animations
-│   │   ├── Contact.tsx     # Contact form & location information
-│   │   ├── Footer.tsx      # Footer links, social media & copyright
+│   │   ├── Contact.tsx     # Contact form with direct WhatsApp submission
+│   │   ├── Footer.tsx      # Footer links, social media & live client counter
 │   │   ├── Hero.tsx         # Main landing hero banner with CTA
 │   │   ├── LegalModal.tsx  # Terms of Service & Privacy Policy modals
 │   │   ├── Navbar.tsx      # Glassmorphism navbar with mobile menu
@@ -83,32 +90,36 @@ Logic Break Solution/
 
 ---
 
+## ⚙️ Configuration Guide
+
+All primary configuration variables are located in a single file: `src/config/site.ts`.
+
+- **WhatsApp Number**: Modify `whatsappNumber` (e.g. `'919994049254'`).
+- **Initial Client Count Baseline**: Modify `initialClientCount` (default: `15`).
+- **API URL**: Modify `apiBaseUrl` or pass `VITE_API_URL` environment variable.
+
+---
+
 ## 🚀 Quick Start Guide
 
 ### Prerequisites
 Make sure you have Node.js (v18+) and npm installed on your machine.
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/darshan468/Logic_Break_Solution.git
-cd Logic_Break_Solution
-```
-
-### 2. Install Dependencies
+### 1. Install Dependencies
 ```bash
 npm install
 ```
 
-### 3. Run the Development Server
-```bash
-npm run dev
-```
-Open [http://localhost:5173](http://localhost:5173) in your browser to view the app.
-
-### 4. Run Backend Server (Optional / For Contact Form API)
+### 2. Run Backend Counter Server (Optional for multi-user live counter syncing)
 ```bash
 node server/index.js
 ```
+
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
@@ -126,7 +137,3 @@ node server/index.js
 ## 📄 License
 
 This project is licensed under the MIT License.
-
----
-
-### 💻 Developed with ❤️ by [Darshan](https://github.com/darshan468) & Logic Break Solution Team

@@ -8,103 +8,67 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
-// Ensure database directory and files exist
-const dbFolder = path.join(__dirname, '../database');
-const dbFile = path.join(dbFolder, 'projects.json');
-const csvFile = path.join(dbFolder, 'projects.csv');
+// Counter storage file configuration (lightweight server-side state, no database)
+const counterFile = path.join(__dirname, 'counter.json');
+const INITIAL_COUNT = 15;
 
-if (!fs.existsSync(dbFolder)) {
-  fs.mkdirSync(dbFolder, { recursive: true });
-}
-
-if (!fs.existsSync(dbFile)) {
-  fs.writeFileSync(dbFile, JSON.stringify([], null, 2));
-}
-
-// Function to update/generate CSV file formatted for Google Sheets / Excel
-const updateCSVDatabase = (bookings) => {
-  const headers = ['ID', 'Timestamp', 'Name', 'Phone', 'Email', 'Service', 'Budget', 'Message'];
-  
-  const escapeCSV = (str) => {
-    if (!str) return '""';
-    const cleanStr = String(str).replace(/"/g, '""');
-    return `"${cleanStr}"`;
-  };
-
-  const rows = bookings.map((b) => [
-    escapeCSV(b.id),
-    escapeCSV(b.timestamp),
-    escapeCSV(b.name),
-    escapeCSV(b.phone || 'N/A'),
-    escapeCSV(b.email),
-    escapeCSV(b.service),
-    escapeCSV(b.budget || 'N/A'),
-    escapeCSV(b.message)
-  ].join(','));
-
-  const csvContent = [headers.join(','), ...rows].join('\n');
-  fs.writeFileSync(csvFile, csvContent, 'utf8');
+// Helper to read counter from storage
+const readCounter = () => {
+  try {
+    if (fs.existsSync(counterFile)) {
+      const data = JSON.parse(fs.readFileSync(counterFile, 'utf8'));
+      if (typeof data.count === 'number' && !isNaN(data.count)) {
+        return data.count;
+      }
+    }
+  } catch (error) {
+    console.error('Error reading counter file:', error);
+  }
+  // Initialize with default starting count
+  writeCounter(INITIAL_COUNT);
+  return INITIAL_COUNT;
 };
 
-// Initialize CSV if empty
-if (!fs.existsSync(csvFile)) {
-  const initialData = JSON.parse(fs.readFileSync(dbFile, 'utf8'));
-  updateCSVDatabase(initialData);
-}
-
-// Endpoint to receive project bookings
-app.post('/api/book-project', (req, res) => {
+// Helper to write counter to storage
+const writeCounter = (count) => {
   try {
-    const bookingData = req.body;
-    
-    // Read existing database
-    const fileData = fs.readFileSync(dbFile, 'utf8');
-    const db = JSON.parse(fileData);
-    
-    // Add new booking with timestamp and ID
-    const newBooking = {
-      id: Date.now().toString(),
-      timestamp: new Date().toISOString(),
-      ...bookingData
-    };
-    
-    db.push(newBooking);
-    
-    // Write JSON database
-    fs.writeFileSync(dbFile, JSON.stringify(db, null, 2));
-
-    // Write CSV (Google Sheets format) database
-    updateCSVDatabase(db);
-    
-    res.status(201).json({ 
-      success: true, 
-      message: 'Project booked successfully! Saved to JSON and Google Sheets CSV format.',
-      csvPath: csvFile 
-    });
+    fs.writeFileSync(counterFile, JSON.stringify({ count, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
   } catch (error) {
-    console.error('Error saving booking:', error);
-    res.status(500).json({ success: false, message: 'Failed to save booking.' });
+    console.error('Error writing counter file:', error);
+  }
+};
+
+// GET /api/counter - Retrieve the current live client count
+app.get('/api/counter', (req, res) => {
+  const currentCount = readCounter();
+  res.json({ success: true, count: currentCount });
+});
+
+// POST /api/counter/increment - Increment live client count by 1 upon form submission
+app.post('/api/counter/increment', (req, res) => {
+  try {
+    let currentCount = readCounter();
+    currentCount += 1;
+    writeCounter(currentCount);
+    res.json({ success: true, count: currentCount });
+  } catch (error) {
+    console.error('Error incrementing counter:', error);
+    res.status(500).json({ success: false, message: 'Failed to increment counter' });
   }
 });
 
-// Endpoint to view/download CSV (Google Sheets format) file
-app.get('/api/projects.csv', (req, res) => {
-  if (fs.existsSync(csvFile)) {
-    res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename="logic_break_projects.csv"');
-    return res.sendFile(csvFile);
-  }
-  res.status(404).send('CSV database file not found.');
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 app.listen(PORT, () => {
-  console.log(`Backend server is running at http://localhost:${PORT}`);
-  console.log(`Database folder is located at: ${dbFolder}`);
-  console.log(`Google Sheets CSV file: ${csvFile}`);
+  console.log(`Logic Break Counter Service running on port ${PORT}`);
+  console.log(`Live Counter storage: ${counterFile}`);
 });

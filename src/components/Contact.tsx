@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Mail, MessageCircle, CheckCircle2 } from 'lucide-react';
+import { Camera, Mail, MessageCircle, CheckCircle2, Send } from 'lucide-react';
 import BackgroundEffects from './BackgroundEffects';
+import { SITE_CONFIG } from '../config/site';
+import { useCounter } from '../hooks/useCounter';
 
 const Contact = () => {
+  const { incrementCount } = useCounter();
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -42,7 +46,7 @@ const Contact = () => {
     // Allow +, numbers, spaces, dashes, parentheses (length 7 to 20)
     const phoneRegex = /^\+?[0-9\s\-()]{7,20}$/;
     if (!phoneRegex.test(phone.trim())) {
-      return 'Please enter a valid contact number (e.g. +91 99940 49254).';
+      return `Please enter a valid contact number (e.g. ${SITE_CONFIG.whatsappDisplayPhone}).`;
     }
     return '';
   };
@@ -50,6 +54,9 @@ const Contact = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Prevent accidental duplicate submission
+    if (isSubmitting) return;
+
     const phoneValError = validatePhone(formData.phone);
     if (phoneValError) {
       setPhoneError(phoneValError);
@@ -57,25 +64,43 @@ const Contact = () => {
     }
 
     setIsSubmitting(true);
-    try {
-      const response = await fetch('http://localhost:3001/api/book-project', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
 
-      if (response.ok) {
-        setIsSubmitted(true);
-        setFormData({ name: '', phone: '', email: '', service: '', budget: '', message: '' });
-        setPhoneError('');
-      } else {
-        alert('Failed to send inquiry. Please try again.');
+    try {
+      // 1. Construct formatted WhatsApp message
+      const messageLines = [
+        'New Website Enquiry',
+        '',
+        `Name: ${formData.name.trim()}`,
+        `Phone: ${formData.phone.trim()}`,
+        `Email: ${formData.email.trim()}`,
+        `Service: ${formData.service}`,
+      ];
+
+      if (formData.budget.trim()) {
+        messageLines.push(`Budget: ${formData.budget.trim()}`);
       }
+
+      messageLines.push(`Message: ${formData.message.trim()}`);
+
+      const rawMessageText = messageLines.join('\n');
+
+      // 2. Safely URL-encode the WhatsApp message
+      const encodedText = encodeURIComponent(rawMessageText);
+      const whatsappUrl = `https://wa.me/${SITE_CONFIG.whatsappNumber}?text=${encodedText}`;
+
+      // 3. Increment the live client counter
+      await incrementCount();
+
+      // 4. Open WhatsApp in a new tab/window safely
+      window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+
+      // 5. Show success UI state
+      setIsSubmitted(true);
+      setFormData({ name: '', phone: '', email: '', service: '', budget: '', message: '' });
+      setPhoneError('');
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred. Please check if the server is running and try again.');
+      console.error('Error handling form submission:', error);
+      alert('An unexpected error occurred. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -123,23 +148,23 @@ const Contact = () => {
                 </div>
               </a>
 
-              <a href="https://wa.me/919994049254" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-lb-gold/50 transition-colors group">
+              <a href={`https://wa.me/${SITE_CONFIG.whatsappNumber}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-lb-gold/50 transition-colors group">
                 <div className="w-12 h-12 bg-lb-black rounded-full flex items-center justify-center group-hover:bg-lb-gold group-hover:text-lb-black transition-colors text-lb-gold">
                   <MessageCircle size={20} />
                 </div>
                 <div>
                   <h4 className="font-bold text-white">WhatsApp / Call</h4>
-                  <p className="text-gray-400 text-sm font-semibold">+91 99940 49254</p>
+                  <p className="text-gray-400 text-sm font-semibold">{SITE_CONFIG.whatsappDisplayPhone}</p>
                 </div>
               </a>
 
-              <a href="mailto:hello@logicbreaksolution.com" className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-lb-gold/50 transition-colors group">
+              <a href={`mailto:${SITE_CONFIG.contactEmail}`} className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/5 hover:border-lb-gold/50 transition-colors group">
                 <div className="w-12 h-12 bg-lb-black rounded-full flex items-center justify-center group-hover:bg-lb-gold group-hover:text-lb-black transition-colors text-lb-gold">
                   <Mail size={20} />
                 </div>
                 <div>
                   <h4 className="font-bold text-white">Email</h4>
-                  <p className="text-gray-400 text-sm">hello@logicbreaksolution.com</p>
+                  <p className="text-gray-400 text-sm">{SITE_CONFIG.contactEmail}</p>
                 </div>
               </a>
             </div>
@@ -151,14 +176,15 @@ const Contact = () => {
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   className="absolute inset-0 z-10 bg-lb-charcoal flex flex-col items-center justify-center p-8 text-center"
                 >
                   <div className="w-20 h-20 bg-lb-gold/20 rounded-full flex items-center justify-center mb-6">
                     <CheckCircle2 className="w-10 h-10 text-lb-gold" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">Thank you!</h3>
+                  <h3 className="text-2xl font-bold mb-4">Redirecting to WhatsApp!</h3>
                   <p className="text-gray-400 mb-8 max-w-sm">
-                    We've received your project inquiry. We'll get back to you soon.
+                    Your enquiry has been formatted and WhatsApp was opened in a new window to send your message directly to our team.
                   </p>
                   <button
                     onClick={() => setIsSubmitted(false)}
@@ -195,7 +221,7 @@ const Contact = () => {
                   onChange={handleChange}
                   required
                   className={`w-full bg-lb-black border ${phoneError ? 'border-red-500' : 'border-white/10'} rounded-xl px-4 py-3 text-white focus:outline-none focus:border-lb-gold transition-colors`}
-                  placeholder="Enter your contact number (e.g. +91 99940 49254)"
+                  placeholder={`Enter your contact number (e.g. ${SITE_CONFIG.whatsappDisplayPhone})`}
                 />
                 {phoneError && (
                   <p className="text-xs text-red-400 mt-1">{phoneError}</p>
@@ -278,9 +304,16 @@ const Contact = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-lb-gold text-lb-black font-bold px-8 py-4 rounded-xl hover:bg-lb-gold-light transition-colors disabled:opacity-50"
+                className="w-full bg-lb-gold text-lb-black font-bold px-8 py-4 rounded-xl hover:bg-lb-gold-light transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
               >
-                {isSubmitting ? 'Sending...' : 'Send Project Inquiry'}
+                {isSubmitting ? (
+                  <span>Opening WhatsApp...</span>
+                ) : (
+                  <>
+                    <Send size={18} />
+                    <span>Send via WhatsApp</span>
+                  </>
+                )}
               </button>
             </form>
           </div>
