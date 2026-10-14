@@ -49,8 +49,8 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
             <div className="relative w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden border-2 border-lb-gold/40 shadow-[0_0_50px_rgba(212,175,55,0.3)] bg-lb-charcoal p-2 flex items-center justify-center">
               <img
                 src="/logo.png"
-                alt="LOGIC BREAK SOLUTION Logo"
-                className="w-full h-full object-cover rounded-xl"
+                alt="Logic Break Solutions Logo"
+                className="w-full h-full object-contain rounded-xl"
                 onError={(e) => {
                   // Fallback logo text if image is not loaded
                   (e.target as HTMLElement).style.display = 'none';

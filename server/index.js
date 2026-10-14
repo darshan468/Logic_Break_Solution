@@ -14,6 +14,14 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
+// Prevent stale cached responses across devices
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
+
 // Counter storage file configuration (lightweight server-side state, no database)
 const counterFile = path.join(__dirname, 'counter.json');
 const INITIAL_COUNT = 15;
@@ -24,7 +32,7 @@ const readCounter = () => {
     if (fs.existsSync(counterFile)) {
       const data = JSON.parse(fs.readFileSync(counterFile, 'utf8'));
       if (typeof data.count === 'number' && !isNaN(data.count)) {
-        return data.count;
+        return Math.max(data.count, INITIAL_COUNT);
       }
     }
   } catch (error) {
@@ -35,10 +43,12 @@ const readCounter = () => {
   return INITIAL_COUNT;
 };
 
-// Helper to write counter to storage
+// Helper to write counter atomically to storage using a temporary file
 const writeCounter = (count) => {
   try {
-    fs.writeFileSync(counterFile, JSON.stringify({ count, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+    const tempFile = `${counterFile}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify({ count, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+    fs.renameSync(tempFile, counterFile);
   } catch (error) {
     console.error('Error writing counter file:', error);
   }
@@ -50,8 +60,8 @@ app.get('/api/counter', (req, res) => {
   res.json({ success: true, count: currentCount });
 });
 
-// POST /api/counter/increment - Increment live client count by 1 upon form submission
-app.post('/api/counter/increment', (req, res) => {
+// Increment handler
+const handleIncrement = (req, res) => {
   try {
     let currentCount = readCounter();
     currentCount += 1;
@@ -61,7 +71,11 @@ app.post('/api/counter/increment', (req, res) => {
     console.error('Error incrementing counter:', error);
     res.status(500).json({ success: false, message: 'Failed to increment counter' });
   }
-});
+};
+
+// POST /api/counter & POST /api/counter/increment
+app.post('/api/counter', handleIncrement);
+app.post('/api/counter/increment', handleIncrement);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

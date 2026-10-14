@@ -165,8 +165,8 @@ const Footer = () => {
           {/* Bottom Row - Logo, Exact Copyright & Legal Links */}
           <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-gray-400">
             <div className="flex items-center gap-3">
-              <div className="w-7 h-7 rounded overflow-hidden border border-lb-gold/40">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+              <div className="w-8 h-8 rounded-lg overflow-hidden border border-lb-gold/30 bg-lb-charcoal p-0.5 flex items-center justify-center shrink-0">
+                <img src="/logo.png" alt="Logic Break Solutions Logo" className="w-full h-full object-contain" />
               </div>
               <span>© 2026 LOGIC BREAK SOLUTION, All rights reserved.</span>
             </div>

@@ -2,43 +2,38 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { SITE_CONFIG } from '../config/site';
 import { CounterContext } from './CounterContext';
 
-const LOCAL_STORAGE_KEY = 'lb_client_count';
-
 export const CounterProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [count, setCount] = useState<number>(() => {
-    const cached = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (cached) {
-      const parsed = parseInt(cached, 10);
-      if (!isNaN(parsed) && parsed >= SITE_CONFIG.initialClientCount) {
-        return parsed;
-      }
-    }
-    return SITE_CONFIG.initialClientCount;
-  });
-
+  // Consistent initial source of truth across all devices
+  const [count, setCount] = useState<number>(SITE_CONFIG.initialClientCount);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Fetch live count from backend server endpoint
+  // Fetch live count from shared backend server / serverless API endpoint
   const fetchLiveCount = useCallback(async () => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000);
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
 
-      const response = await fetch(`${SITE_CONFIG.apiBaseUrl}/api/counter`, {
+      const endpoint = `${SITE_CONFIG.apiBaseUrl}/api/counter`;
+      const response = await fetch(endpoint, {
         signal: controller.signal,
+        cache: 'no-store',
+        headers: {
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache',
+        },
       });
       clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
         if (data.success && typeof data.count === 'number') {
-          const newCount = Math.max(data.count, SITE_CONFIG.initialClientCount);
-          setCount(newCount);
-          localStorage.setItem(LOCAL_STORAGE_KEY, newCount.toString());
+          const verifiedCount = Math.max(data.count, SITE_CONFIG.initialClientCount);
+          setCount(verifiedCount);
         }
       }
     } catch (error) {
-      console.warn('Backend counter endpoint unavailable, using local client count state:', error);
+      // In offline development or when API is unreachable, preserve the consistent baseline
+      console.warn('Live counter API unavailable; displaying consistent baseline statistic:', error);
     } finally {
       setIsLoading(false);
     }
@@ -57,17 +52,25 @@ export const CounterProvider: React.FC<{ children: React.ReactNode }> = ({ child
     };
   }, [fetchLiveCount]);
 
-  // Increment counter upon successful form submission
+  // Increment counter upon verified user action (form submission)
   const incrementCount = async (): Promise<number> => {
     let updatedCount = count + 1;
 
     try {
-      const response = await fetch(`${SITE_CONFIG.apiBaseUrl}/api/counter/increment`, {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+      const endpoint = `${SITE_CONFIG.apiBaseUrl}/api/counter/increment`;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Pragma': 'no-cache',
+          'Cache-Control': 'no-cache',
         },
+        signal: controller.signal,
       });
+      clearTimeout(timeoutId);
 
       if (response.ok) {
         const data = await response.json();
@@ -76,11 +79,10 @@ export const CounterProvider: React.FC<{ children: React.ReactNode }> = ({ child
         }
       }
     } catch (error) {
-      console.warn('Backend increment API unavailable, incrementing local count state:', error);
+      console.warn('Backend increment API unavailable; applying optimistic session increment:', error);
     }
 
     setCount(updatedCount);
-    localStorage.setItem(LOCAL_STORAGE_KEY, updatedCount.toString());
     return updatedCount;
   };
 

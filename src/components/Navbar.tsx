@@ -27,8 +27,8 @@ const Navbar = () => {
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'glass py-4' : 'bg-transparent py-6'}`}>
       <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
         <a href="#home" className="flex items-center gap-3 relative z-50">
-          <div className="w-10 h-10 rounded-lg overflow-hidden border border-lb-gold/40 bg-lb-charcoal shadow-[0_0_15px_rgba(212,175,55,0.2)]">
-            <img src="/logo.png" alt="LOGIC BREAK SOLUTION Logo" className="w-full h-full object-contain" />
+          <div className="w-10 h-10 rounded-lg overflow-hidden border border-lb-gold/40 bg-lb-charcoal shadow-[0_0_15px_rgba(212,175,55,0.2)] p-0.5 flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="Logic Break Solutions Logo" className="w-full h-full object-contain" />
           </div>
           <span className="font-bold text-lg hidden sm:block tracking-wide text-white">
             LOGIC BREAK <span className="text-lb-gold">SOLUTION</span>

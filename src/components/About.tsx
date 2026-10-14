@@ -40,8 +40,12 @@ const About = () => {
             
             <div className="mt-10 pt-10 border-t border-white/10">
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-lb-charcoal rounded-full border border-white/10 flex items-center justify-center font-bold text-3xl">
-                  <span className="text-lb-gold">L</span><span className="text-white">B</span>
+                <div className="w-16 h-16 rounded-full border border-lb-gold/30 bg-black/80 overflow-hidden p-1 flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.15)] shrink-0">
+                  <img
+                    src="/logo.png"
+                    alt="Logic Break Solutions Logo"
+                    className="w-full h-full object-contain rounded-full"
+                  />
                 </div>
                 <div>
                   <h4 className="font-bold text-xl">Logic Break Team</h4>

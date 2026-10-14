@@ -15,6 +15,6 @@ export const SITE_CONFIG = {
   // Default initial client count as required by specification
   initialClientCount: 15,
 
-  // Backend API Base URL for live counter (overridable via VITE_API_URL env var)
-  apiBaseUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  // Backend API Base URL for live counter (relative by default, overridable via VITE_API_URL env var)
+  apiBaseUrl: import.meta.env.VITE_API_URL || '',
 };
